@@ -136,8 +136,8 @@ pip install -r requirements.txt
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/MeteoMap.git
-cd MeteoMap
+git clone https://github.com/ThatPythonGuy96/MeteoMap-App.git
+cd MeteoMap-App
 
 # Create and activate a virtual environment
 python -m venv map_env
