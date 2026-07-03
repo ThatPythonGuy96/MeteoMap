@@ -1,20 +1,24 @@
 # get_app_temp_dir(), packaging-safe paths
 import sys, os, tempfile
 
-def get_app_temp_dir():
-    """Returns a writable temp directory that works both as script and .exe"""
+def get_app_data_dir() -> str:
+    """Base writable directory for all app data — works installed or in dev."""
     if getattr(sys, 'frozen', False):
-        # Running as PyInstaller bundle
-        # sys._MEIPASS is the unpacked bundle dir (read-only in --onefile)
-        # Use the user's actual temp dir instead
-        base = tempfile.gettempdir()
+        base = os.path.join(os.environ.get('LOCALAPPDATA', os.path.expanduser('~')), 'MeteoMap')
     else:
-        # Running as script
-        base = tempfile.gettempdir()
-    
-    app_temp = os.path.join(base, "MeteoMap")
-    os.makedirs(app_temp, exist_ok=True)
-    return app_temp
+        base = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+    os.makedirs(base, exist_ok=True)
+    return base
+
+def get_app_temp_dir() -> str:
+    path = os.path.join(get_app_data_dir(), 'temp')
+    os.makedirs(path, exist_ok=True)
+    return path
+
+def get_cache_path() -> str:
+    path = os.path.join(get_app_data_dir(), 'cache', 'omcache')
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    return path
 
 def resource_path(relative: str) -> str:
     """Works both in dev and inside a PyInstaller bundle."""

@@ -6,12 +6,12 @@ from logging.handlers import RotatingFileHandler
 def get_log_path() -> str:
     """Packaging-safe log file location."""
     if getattr(sys, 'frozen', False):
-        # Packaged exe — write next to the exe
-        base = os.path.dirname(sys.executable)
+        # Packaged — write to AppData/Local/MeteoMap/logs
+        # This is always writable, even without admin rights
+        base = os.path.join(os.environ.get('LOCALAPPDATA', os.path.expanduser('~')), 'MeteoMap')
     else:
-        # Running as script — write next to main.py
-        base = os.path.dirname(os.path.abspath(__file__))
-        base = os.path.join(base, '..')  # up from utils/
+        # Dev — write next to the project root
+        base = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 
     log_dir = os.path.join(base, 'logs')
     os.makedirs(log_dir, exist_ok=True)
