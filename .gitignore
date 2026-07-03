@@ -1,2 +1,4 @@
-venv_gis/
+venvgis/
 .cache.sqlite
+build/
+dist/
