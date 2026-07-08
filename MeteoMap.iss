@@ -36,7 +36,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
 OutputDir=C:\Users\David\Desktop
-OutputBaseFilename=MeteoGIS
+OutputBaseFilename=MeteoMap
 SetupIconFile=C:\Users\David\Desktop\Projects\MeteoMap\software\meteomap.ico
 SolidCompression=yes
 WizardStyle=modern
