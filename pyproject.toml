@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=77.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "meteogis"
+version = "0.1.0"
+description = "A desktop GIS application for climate analysis and geospatial data processing."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+    "GIS",
+    "meteorology",
+    "climate",
+    "drought",
+    "geospatial",
+    "PyQt6",
+    "raster",
+    "climate-analysis",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+]
+
+dependencies = [
+    "pandas",
+    "numpy",
+    "matplotlib",
+    "scipy",
+    "rasterio",
+    "geopandas",
+    "shapely",
+    "PyQt6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "build",
+]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/MeteoGIS"
+Repository = "https://github.com/YOUR_USERNAME/MeteoGIS"
+Issues = "https://github.com/YOUR_USERNAME/MeteoGIS/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "analysis*", "layers*", "tools*", "utils*", "widgets*"]
+exclude = ["tests*", "data*", "logs*", "venvgis*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

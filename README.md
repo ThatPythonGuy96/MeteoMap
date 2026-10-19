@@ -7,7 +7,14 @@ A desktop GIS application for visualising geospatial data and computing meteorol
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 ---
+## Screenshots
 
+![MeteoGIS Main Window](assets/screenshots/main-window.png)
+![MeteoGIS Weather Chart](assets/screenshots/weather-chart.png)
+![MeteoGIS SPI Chart](assets/screenshots/SPI-chart.png)
+![MeteoGIS SPEI Chart](assets/screenshots/SPEI-chart.png)
+
+---
 ## Features
 
 ### Map Viewer
@@ -226,3 +233,8 @@ Traceback (most recent call last):
 - [Open-Meteo](https://open-meteo.com/) for free ERA5 reanalysis data
 - [Folium](https://python-visualization.github.io/folium/) for the Leaflet.js map integration
 - SPI algorithm based on WMO guidelines and Thom (1958) gamma parameter estimation
+
+## Contributing
+
+Contributions are welcome! Please read our
+[Contributing Guidelines](CONTRIBUTING.md) before submitting a pull request.
