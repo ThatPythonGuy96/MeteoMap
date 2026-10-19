@@ -16,6 +16,7 @@ import openmeteo_requests, requests_cache
 from retry_requests import retry
 from folium.plugins import Draw
 from app.tool_dialog import ToolDialog
+from app.graph_tab import plot_graph
 from widgets.basemap_dialog import BasemapDialog
 from widgets.python_interpreter import PythonInterpreter
 from layers.netcdf import *
@@ -24,6 +25,7 @@ from layers.vector import *
 from widgets.table_model import TableModel
 from tools.geoprocessing import *
 from utils.paths import resource_path
+from layers.TileLayer import TileLayer
 
 cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
 retry_session = retry(cache_session, retries = 5, backoff_factor = 0.2)
@@ -34,15 +36,12 @@ class GISApp(QMainWindow):
         super().__init__()
         self.setWindowTitle("MeteoMap")
         self.setWindowIcon(QIcon(resource_path("meteomap.ico")))
-        self.setGeometry(100, 100, 1000, 900)
+        self.setWindowState(Qt.WindowState.WindowMaximized)
         
         self.toolbox = ToolDialog(self)
         self.setStyleSheet("""
             QProgressBar {
-                height: 7px;
-            }
-            QWebEngineView {
-                border-color: "black";
+                height: 5px;
             }
             QSplashScreen {
                 background-color: "white";               
@@ -67,6 +66,7 @@ class GISApp(QMainWindow):
         self.setStatusBar(self.status_Bar)
         self.map_tab()
         self.graph_tab()
+        self.add_basemap('OpenStreetMap')
     
     def status(self, message, timeout=0):
         self.status_Bar.showMessage(message, timeout)
@@ -87,7 +87,8 @@ class GISApp(QMainWindow):
         new_action.setShortcut('Ctrl+N') 
         file_menu.addAction(new_action)
 
-        file_menu.addSeparator()
+        if file_menu is not None:
+            file_menu.addSeparator()
 
         load_action = QAction('Load Data', self)
         load_action.setShortcut('Ctrl+L')
@@ -187,12 +188,13 @@ class GISApp(QMainWindow):
         self.layer_list.addWidget(self.layer_list_label)
         self.layer_list.addWidget(self.layer_variable_list)
         self.layer_list.addStretch()
+        
         self.left_widget = QWidget()
         self.left_widget.setLayout(self.layer_list)
         self.layer_variable_list.setStyleSheet(
             """
             QListWidget {
-                border: 1px solid gray;
+                border: 1px solid #AA0000;
                 padding: 0px;
             }
             QCheckBox {
@@ -203,6 +205,7 @@ class GISApp(QMainWindow):
 
         self.web_view_widget = QWidget()
         self.web_view = QWebEngineView(self.web_view_widget)
+        self.web_view.setStyleSheet("QWidget { border: 1px solid black; }")
 
         self.table = QTableView()
 
@@ -273,7 +276,7 @@ class GISApp(QMainWindow):
         buttons = QHBoxLayout()
         self.update_button = QPushButton("Update Graph")
         self.update_button.setFixedSize(QSize(1200, 30))
-        self.update_button.clicked.connect(self.plot_graph)
+        self.update_button.clicked.connect(lambda _checked=False: plot_graph(self=self))
         buttons.addWidget(self.update_button)
         self.top_layout.addLayout(buttons)
         
@@ -290,7 +293,7 @@ class GISApp(QMainWindow):
         self.layout.addWidget(self.canvas, stretch=1) # Graph
         
         self.tab.addTab(self.graph_tab, 'Plot')
-        self.plot_graph()
+        plot_graph(self=self)
        
     def toolbar1(self):
         toolbar = QToolBar()
@@ -371,7 +374,7 @@ class GISApp(QMainWindow):
         if dialog.exec():
             selected_basemap = dialog.get_selected_basemap()
             self.add_basemap(selected_basemap)
-
+            
     def add_basemap(self, basemap_name):
         basemap_dict = {
             'OpenStreetMap': 'openstreetmap',
@@ -420,7 +423,7 @@ class GISApp(QMainWindow):
         data = io.BytesIO()
         self.m.save(data, close_file=False)
         self.web_view.setHtml(data.getvalue().decode('utf-8'))
-
+    
     def create_layer(self, file_path):
         file_name = os.path.basename(file_path)
         file_extension = os.path.splitext(file_path)[1]
@@ -495,134 +498,3 @@ class GISApp(QMainWindow):
         self.m.save(data, close_file=False)
         self.web_view.setHtml(data.getvalue().decode())
 
-    def plot_graph(self):
-        latitude = float(self.latitude_input.text().strip())
-        longitude = float(self.longitude_input.text().strip())
-        start_date = str(self.start_input_field.text().strip())
-        end_date = str(self.end_input_field.text().strip())
-
-        selected_variables = [
-            var for var, checkbox in self.variables.items() if checkbox.isChecked()
-        ]
-        
-        if not selected_variables:
-            raise ValueError("At least one variable must be selected!")
-        
-        url = "https://archive-api.open-meteo.com/v1/archive"
-        params = {
-            "latitude": latitude,
-            "longitude": longitude,
-            "start_date": start_date,
-            "end_date": end_date,
-            "models": "era5_seamless",
-            "timezone": "auto",
-            "daily": selected_variables  
-        }
-        try:
-            responses = openmeteo.weather_api(url, params=params)
-
-            if not responses:
-                self.status("Check Your internet connection", 50000)
-
-            response = responses[0]
-            daily = response.Daily()
-
-            daily_data = {
-                "date": pd.date_range(
-                    start=pd.to_datetime(daily.Time(), unit="s", utc=True),
-                    end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
-                    freq=pd.Timedelta(seconds=daily.Interval()),
-                    inclusive="left"
-                )
-            }
-
-            for i, variable in enumerate(selected_variables):
-                values = daily.Variables(i).ValuesAsNumpy()
-                daily_data[variable] = values
-
-            daily_dataframe = pd.DataFrame(daily_data)
-            daily_data['date'] = pd.to_datetime(daily_data['date'])
-            x = daily_data['date']
-
-            self.figure.clear()
-
-            ax1 = self.figure.add_subplot(111)
-
-            variable_config = {
-                "temperature_2m_max": {"axis": "primary", "type": "line", "color": "#d62728"},
-                "temperature_2m_min": {"axis": "primary", "type": "line", "color": "#ff7f0e"},
-                "temperature_2m_mean": {"axis": "primary", "type": "line", "color": "#1f77b4"},
-                "precipitation_sum": {"axis": "secondary", "type": "bar", "color": "#4A90E2"},
-                "et0_fao_evapotranspiration": {"axis": "secondary", "type": "line", "color": "#2ca02c"},
-            }
-
-            ax2 = None
-
-            # Plot each variable with its configuration
-            for variable in selected_variables:
-                config = variable_config.get(variable, {})
-                axis = config.get("axis", "primary")
-                plot_type = config.get("type", "line")
-                color = config.get("color", "black")
-
-                if axis == "primary":
-                    if plot_type == "line":
-                        ax1.plot(
-                            daily_dataframe["date"],
-                            daily_dataframe[variable],
-                            label=variable.replace("_", " ").capitalize(),
-                            color=color
-                        )
-                elif axis == "secondary":
-                    if not ax2:
-                        ax2 = ax1.twinx()
-                    if plot_type == "line":
-                        ax2.plot(
-                            daily_dataframe["date"],
-                            daily_dataframe[variable],
-                            label=variable.replace("_", " ").capitalize(),
-                            color=color
-                        )
-                    elif plot_type == "bar":
-                        if variable == "precipitation_sum":
-                            ax2.bar(
-                                x - pd.Timedelta(days=0.2),
-                                daily_data[variable],
-                                width=0.8,
-                                color="#4A90E2",
-                                alpha=0.5,
-                                label="Precipitation sum",
-                            )
-
-            ax1.set_ylabel("°C", color="red")
-            ax1.tick_params(axis="y", labelcolor="red")
-            ax1.xaxis.set_major_locator(mdates.YearLocator(2))
-
-            if ax2:
-                ax2.set_ylabel("mm", color="blue")
-                ax2.tick_params(axis="y", labelcolor="blue")
-
-            handles, labels = ax1.get_legend_handles_labels()
-            if ax2:
-                handles2, labels2 = ax2.get_legend_handles_labels()
-                handles.extend(handles2)
-                labels.extend(labels2)
-            ax1.legend(handles, labels, loc="upper left", title="Variables")
-
-            ax1.set_title("Weather Data")
-            ax1.set_xlabel('Date') 
-            ax1.grid(True)
-            self.canvas.draw()
-            
-            self.save_button.setEnabled(True)
-            self.save_button.clicked.connect(lambda: save_spi_data(daily_data))
-            
-            def save_spi_data(data):
-                file_dialog = QFileDialog()
-                save_path, _ = file_dialog.getSaveFileName(self, "Save Weather Data", "", "CSV Files (*.csv)")
-                if save_path:
-                    data = pd.DataFrame(data = daily_data)
-                    data.to_csv(save_path)
-                    self.status(f"Weather data saved to {save_path}", 5000)
-        except Exception as e:
-            self.status(f"Error fetching data: {e}", 10000)

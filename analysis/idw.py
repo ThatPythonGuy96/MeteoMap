@@ -10,7 +10,11 @@ import rasterio
 from rasterio.transform import from_origin
 from folium.raster_layers import ImageOverlay
 import matplotlib
+import matplotlib.colors as mcolors
 from utils.paths import resource_path
+from utils.logger import setup_logger
+
+logger = setup_logger()
 
 def IDW(self):
     dialog = QDialog()
@@ -58,8 +62,10 @@ def IDW(self):
                     attribute_combo.clear()
                     attribute_combo.addItems(attributes)
                 except Exception as e:
+                    logger.error(f"IDW: Error loading shapefile: {e}")
                     self.main_window.status(f"Error loading shapefile: {e}", 10000)
             else:
+                logger.error("IDW: Invalid layer or missing file_path")
                 self.main_window.status("Invalid layer or missing file_path", 10000)
 
     output_layout = QHBoxLayout()
@@ -117,11 +123,12 @@ def IDW(self):
             layer = selected_item.data(0)
             if layer:
                 input = layer.file_path
-                power = float(power_input.text()) if power_input.text().isdigit() else 2
+                power = float(power_input.text()) if power_input.text().replace('.', '', 1).isdigit() else 2.0
                 resolution = float(resolution_input.text()) if resolution_input.text().replace('.', '', 1).isdigit() else None
                 attribute = attribute_combo.currentText()
                 output_path = output_input.text()
                 if not (attribute and output_path and resolution):
+                    logger.error("IDW: Missing required fields")
                     self.status("Error: Please fill in all required fields.", 10000)
                     return
 
@@ -137,7 +144,7 @@ def IDW(self):
                         progress_bar.setValue(i)
                         QApplication.processEvents()
                             
-                def idw_interpolation_on_shapefile(input, attribute, output_file_path, resolution, power=2):
+                def idw_interpolation_on_shapefile(input, attribute, output_file_path, resolution, power: float = 2.0):
                     gdf = gpd.read_file(input)
                     x = gdf.geometry.x
                     y = gdf.geometry.y
@@ -174,7 +181,8 @@ def IDW(self):
                 try:
                     idw_interpolation_on_shapefile(input, attribute, output_file_path, resolution, power)
                     progress()
-                            
+                    
+                    logger.info("IDW Interpolation completed successfully.")
                     self.main_window.status("IDW Interpolation completed successfully.", 10000)
 
                     with rasterio.open(output_path) as src:
@@ -186,7 +194,7 @@ def IDW(self):
                         discrete_data = np.digitize(raster_data, bin_edges)
 
                         colors = ['#d9f0a3', '#addd8e', '#78c679', '#41ab5d', '#238443', '#005a32']
-                        cmap = matplotlib.colors.ListedColormap(colors)
+                        cmap = mcolors.ListedColormap(colors)
                         colored_raster = cmap(discrete_data / num_bins)
 
                         layer = ImageOverlay(
@@ -203,4 +211,5 @@ def IDW(self):
                         self.main_window.m.save(data, close_file=False)
                         self.main_window.web_view.setHtml(data.getvalue().decode())
                 except Exception as e:
+                    logger.error(f"IDW: Error during interpolation: {e}")
                     self.main_window.status(f"Error during IDW: {e}", 10000)

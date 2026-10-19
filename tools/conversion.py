@@ -12,6 +12,9 @@ from PyQt6.QtWidgets import QDialog, QPushButton, QProgressBar, QLineEdit
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
 from utils.paths import resource_path
+from utils.logger import setup_logger
+
+logger = setup_logger()
 
 def raster_to_point(self):
     dialog = QDialog()

@@ -2,3 +2,4 @@ venvgis/
 .cache.sqlite
 build/
 dist/
+data/

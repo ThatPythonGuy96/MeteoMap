@@ -11,11 +11,13 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon
 from PyQt6.QtCore import QSize
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from layers.raster import TIFFLayer
 from layers.vector import ShapefileLayer
+from utils.logger import setup_logger
 
+logger = setup_logger()
 
 def buffer_data(main_window):
     dialog = QDialog(main_window)
@@ -68,7 +70,7 @@ def buffer_data(main_window):
 
     selected_item = variable_list.currentItem()
     if not selected_item:
-        main_window.status_Bar.showMessage("No layer selected.", 5000)
+        main_window.status_bar.showMessage("No layer selected.", 5000)
         return
 
     layer = selected_item.data(0)
@@ -80,7 +82,7 @@ def buffer_data(main_window):
     buffer_distance = float(distance.text()) if distance.text() else 0.0
 
     progress_bar = QProgressBar()
-    main_window.status_Bar.addPermanentWidget(progress_bar)
+    main_window.status_bar.addPermanentWidget(progress_bar)
     progress_bar.setValue(0)
     QApplication.processEvents()
 
@@ -118,12 +120,12 @@ def buffer_data(main_window):
         main_window.web_view.setHtml(data.getvalue().decode())
 
         progress_bar.setValue(100)
-        main_window.status_Bar.showMessage(f"{layer_name} buffered successfully", 5000)
+        main_window.status_bar.showMessage(f"{layer_name} buffered successfully", 5000)
 
     except Exception as e:
-        main_window.status_Bar.showMessage(f"Buffer error: {e}", 10000)
+        main_window.status_bar.showMessage(f"Buffer error: {e}", 10000)
     finally:
-        main_window.status_Bar.removeWidget(progress_bar)
+        main_window.status_bar.removeWidget(progress_bar)
 
 
 def clip(main_window):
@@ -178,12 +180,13 @@ def clip(main_window):
     output_path = output_edit.text()
 
     if not all([input_path, mask_path, output_path]):
-        main_window.status_Bar.showMessage("All fields required.", 5000)
+        logger.error("All fields required for clipping.")
+        main_window.status_bar.showMessage("All fields required.", 5000)
         return
 
     ext = os.path.splitext(input_path)[1].lower()
     progress_bar = QProgressBar()
-    main_window.status_Bar.addPermanentWidget(progress_bar)
+    main_window.status_bar.addPermanentWidget(progress_bar)
 
     try:
         mask_gdf = gpd.read_file(mask_path)
@@ -214,7 +217,8 @@ def clip(main_window):
             layer = ShapefileLayer(output_path)
 
         else:
-            main_window.status_Bar.showMessage(
+            logger.error(f"Clip not supported for {ext} files.")
+            main_window.status_bar.showMessage(
                 f"Clip not supported for {ext} files.", 5000
             )
             return
@@ -222,7 +226,7 @@ def clip(main_window):
         progress_bar.setValue(90)
         QApplication.processEvents()
 
-        layer.add_to_map(main_window.m)
+        layer.add_to_map(main_window)
         main_window.layers.append(layer)
         main_window.add_layer_checkbox(layer, os.path.basename(output_path))
 
@@ -231,12 +235,14 @@ def clip(main_window):
         main_window.web_view.setHtml(data.getvalue().decode())
 
         progress_bar.setValue(100)
-        main_window.status_Bar.showMessage("Clip completed successfully.", 5000)
+        logger.info(f"Clip completed successfully for {input_path} with mask {mask_path}. Output saved to {output_path}.")
+        main_window.status_bar.showMessage("Clip completed successfully.", 5000)
 
     except Exception as e:
-        main_window.status_Bar.showMessage(f"Clip error: {e}", 10000)
+        logger.error(f"Clip error: {e}")
+        main_window.status_bar.showMessage(f"Clip error: {e}", 10000)
     finally:
-        main_window.status_Bar.removeWidget(progress_bar)
+        main_window.status_bar.removeWidget(progress_bar)
 
 
 def union(main_window):
@@ -290,7 +296,7 @@ def union(main_window):
     output_path = output_edit.text()
 
     if not item1 or not item2 or not output_path:
-        main_window.status_Bar.showMessage("Select both layers and an output path.", 5000)
+        main_window.status_bar.showMessage("Select both layers and an output path.", 5000)
         return
 
     try:
@@ -311,10 +317,10 @@ def union(main_window):
         data = io.BytesIO()
         main_window.m.save(data, close_file=False)
         main_window.web_view.setHtml(data.getvalue().decode())
-        main_window.status_Bar.showMessage("Union completed successfully.", 5000)
+        main_window.status_bar.showMessage("Union completed successfully.", 5000)
 
     except Exception as e:
-        main_window.status_Bar.showMessage(f"Union error: {e}", 10000)
+        main_window.status_bar.showMessage(f"Union error: {e}", 10000)
 
 
 def intersect(main_window):
@@ -372,7 +378,7 @@ def intersect(main_window):
     output_path = output_edit.text()
 
     if not item1 or not item2 or not output_path:
-        main_window.status_Bar.showMessage("Select both layers and an output path.", 5000)
+        main_window.status_bar.showMessage("Select both layers and an output path.", 5000)
         return
 
     try:
@@ -395,10 +401,10 @@ def intersect(main_window):
         data = io.BytesIO()
         main_window.m.save(data, close_file=False)
         main_window.web_view.setHtml(data.getvalue().decode())
-        main_window.status_Bar.showMessage("Intersect completed successfully.", 5000)
+        main_window.status_bar.showMessage("Intersect completed successfully.", 5000)
 
     except Exception as e:
-        main_window.status_Bar.showMessage(f"Intersect error: {e}", 10000)
+        main_window.status_bar.showMessage(f"Intersect error: {e}", 10000)
 
 
 def extract_by_mask(main_window):
@@ -448,11 +454,11 @@ def extract_by_mask(main_window):
     output_path = output_edit.text()
 
     if not all([raster_path, mask_path, output_path]):
-        main_window.status_Bar.showMessage("All fields are required.", 5000)
+        main_window.status_bar.showMessage("All fields are required.", 5000)
         return
 
     progress_bar = QProgressBar()
-    main_window.status_Bar.addPermanentWidget(progress_bar)
+    main_window.status_bar.addPermanentWidget(progress_bar)
     progress_bar.setValue(0)
 
     try:
@@ -487,9 +493,13 @@ def extract_by_mask(main_window):
         main_window.web_view.setHtml(data.getvalue().decode())
 
         progress_bar.setValue(100)
-        main_window.status_Bar.showMessage("Extract by Mask completed successfully.", 5000)
+        main_window.status_bar.showMessage("Extract by Mask completed successfully.", 5000)
 
     except Exception as e:
-        main_window.status_Bar.showMessage(f"Extract by Mask error: {e}", 10000)
+        main_window.status_bar.showMessage(f"Extract by Mask error: {e}", 10000)
     finally:
-        main_window.status_Bar.removeWidget(progress_bar)
+        main_window.status_bar.removeWidget(progress_bar)
+        
+        
+        
+        

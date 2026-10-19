@@ -129,7 +129,7 @@ def plot_graph(self):
         self.canvas.draw()
         
         self.save_button.setEnabled(True)
-        self.save_button.clicked.connect(lambda: save_spi_data(daily_data))
+        self.save_button.clicked.connect(lambda checked=False: save_spi_data(daily_data))
         
         def save_spi_data(data):
             file_dialog = QFileDialog()
