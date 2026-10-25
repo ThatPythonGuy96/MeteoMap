@@ -17,7 +17,7 @@ Thank you for your interest in contributing to MeteoGIS! Contributions that impr
 Ensure you have a compatible Python version installed.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/MeteoGIS.git
+git clone https://github.com/ThatPythonGuy96/MeteoGIS.git
 cd MeteoGIS
 
 python -m venv .venv

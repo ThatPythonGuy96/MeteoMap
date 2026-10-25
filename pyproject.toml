@@ -44,6 +44,13 @@ dependencies = [
     "geopandas",
     "shapely",
     "PyQt6",
+    "PyQt6-WebEngine",
+    "folium",
+    "netCDF4",
+    "xarray",
+    "openmeteo-requests",
+    "requests-cache",
+    "retry-requests",
 ]
 
 [project.optional-dependencies]
@@ -51,6 +58,9 @@ dev = [
     "pytest",
     "ruff",
     "build",
+]
+packaging = [
+    "pyinstaller>=6.13",
 ]
 
 [project.urls]
