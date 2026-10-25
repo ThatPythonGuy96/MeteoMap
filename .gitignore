@@ -10,7 +10,7 @@ dist/
 *.pyc
 
 # Virtual environments
-venvgis/
+mapvenv/
 
 .cache.sqlite
 build/
