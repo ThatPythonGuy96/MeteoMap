@@ -51,8 +51,8 @@ jobs:
       - name: Verify executable
         shell: pwsh
         run: |
-          if (!(Test-Path "dist/MeteoGIS/MeteoGIS.exe")) {
-            throw "MeteoGIS.exe was not found in the expected output directory."
+          if (!(Test-Path "dist/MeteoMap.exe")) {
+            throw "MeteoMap.exe was not found in the expected output directory."
           }
 
       - name: Install Inno Setup
