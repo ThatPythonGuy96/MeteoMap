@@ -165,23 +165,19 @@ python MeteoMap.py
 MeteoMap uses PyInstaller with a custom `.spec` file to handle rasterio's dynamic imports and bundle the icons folder.
 
 ```bash
-# Install the app and its packaging tools
-python -m pip install -e ".[packaging]"
+# Clean any previous builds first
+rmdir /s /q build dist
 
 # Build
-python -m PyInstaller --clean --noconfirm MeteoMap.spec
+pyinstaller MeteoMap.spec
 ```
 
 The packaged executable will be at `dist/MeteoMap.exe`.
 
-### Automated Windows builds
-
-The GitHub Actions workflow in `.github/workflows/windows.yml` builds the executable and Inno Setup installer on Windows. It runs for pushes and pull requests to `main` or `master`, version tags (`v*`), and manual dispatch. Download the `MeteoMap-Windows` artifact from the completed Actions run. For a versioned installer, push a tag such as `v1.3.0`; non-tag builds use a CI run-number version.
-
 ### Notes on packaging
 - `rasterio`, `fiona`, `pyproj`, and `geopandas` are collected via `collect_all()` in the spec file because their Cython extension modules are not detectable by PyInstaller's static analysis
 - All icon paths use `resource_path()` from `utils/paths.py` to resolve correctly inside the PyInstaller bundle
-- Logs and writable app data are stored under `%LOCALAPPDATA%\MeteoMap` when packaged
+- Logs are written to `logs/meteogis.log` next to the executable
 
 ---
 
