@@ -1,3 +1,4 @@
+fiona==1.10.1
 folium==0.20.0
 geopandas==1.2.0
 matplotlib==3.11.2
