@@ -3,7 +3,7 @@ name: Build MeteoGIS for Windows
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     tags: ["v*"]
   workflow_dispatch:
 
@@ -35,17 +35,17 @@ jobs:
       - name: Build MeteoGIS
         shell: pwsh
         run: |
-          if (Test-Path "MeteoGIS.spec") {
+          if (Test-Path "MeteoMap.spec") {
             python -m PyInstaller --noconfirm --clean `
-              --distpath dist --workpath build "MeteoGIS.spec"
+              --distpath dist --workpath build "MeteoMap.spec"
           }
-          elseif (Test-Path "main.py") {
+          elseif (Test-Path "MeteoMap.py") {
             python -m PyInstaller --noconfirm --clean `
               --windowed --onedir --name MeteoGIS `
-              --distpath dist --workpath build "main.py"
+              --distpath dist --workpath build "MeteoMap.py"
           }
           else {
-            throw "MeteoGIS.spec or main.py was not found."
+            throw "MeteoMap.spec or MeteoMap.py was not found."
           }
 
       - name: Verify executable
@@ -65,7 +65,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path Output | Out-Null
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
-            "MeteoGIS.iss"
+            "MeteoMap.iss"
           if ($LASTEXITCODE -ne 0) {
             throw "Inno Setup compilation failed."
           }
