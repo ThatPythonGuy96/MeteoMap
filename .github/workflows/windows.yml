@@ -1,4 +1,3 @@
-
 name: Build MeteoGIS for Windows
 
 on:
@@ -63,9 +62,7 @@ jobs:
       - name: Compile installer
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path Output | Out-Null
-          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" `
-            "MeteoMap.iss"
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "MeteoMap.iss"
           if ($LASTEXITCODE -ne 0) {
             throw "Inno Setup compilation failed."
           }
@@ -73,15 +70,15 @@ jobs:
       - name: Upload application bundle
         uses: actions/upload-artifact@v4
         with:
-          name: MeteoGIS-Windows-Application
-          path: dist/
+          name: MeteoMap-Windows-Application
+          path: dist/MeteoMap.exe
           if-no-files-found: error
           retention-days: 14
 
       - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
-          name: MeteoGIS-Windows-Installer
-          path: Output/MeteoGIS-Setup.exe
+          name: MeteoMap-Windows-Installer
+          path: dist/MeteoMap-Setup-*.exe
           if-no-files-found: error
           retention-days: 14
