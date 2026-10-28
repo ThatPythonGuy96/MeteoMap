@@ -10,9 +10,6 @@ A desktop GIS application for visualising geospatial data and computing meteorol
 ## Screenshots
 
 ![MeteoGIS Main Window](assets/screenshots/main-window.png)
-![MeteoGIS Weather Chart](assets/screenshots/weather-chart.png)
-![MeteoGIS SPI Chart](assets/screenshots/SPI-chart.png)
-![MeteoGIS SPEI Chart](assets/screenshots/SPEI-chart.png)
 
 ---
 ## Features
