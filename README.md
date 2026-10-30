@@ -235,3 +235,5 @@ Traceback (most recent call last):
 
 Contributions are welcome! Please read our
 [Contributing Guidelines](CONTRIBUTING.md) before submitting a pull request.
+
+[![Fund my work on FLOSSAfrica](https://flossafrica.com/badge.svg?theme=dark)](https://flossafrica.com/m/thatpythonguy96?p=MeteoMap)
