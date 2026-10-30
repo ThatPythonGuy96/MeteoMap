@@ -5,6 +5,7 @@ A desktop GIS application for visualising geospatial data and computing meteorol
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![PyQt6](https://img.shields.io/badge/PyQt6-6.4%2B-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
+[![Fund my work on FLOSSAfrica](https://flossafrica.com/badge.svg?theme=dark)](https://flossafrica.com/m/thatpythonguy96?p=MeteoMap)
 
 ---
 ## Screenshots
@@ -235,5 +236,3 @@ Traceback (most recent call last):
 
 Contributions are welcome! Please read our
 [Contributing Guidelines](CONTRIBUTING.md) before submitting a pull request.
-
-[![Fund my work on FLOSSAfrica](https://flossafrica.com/badge.svg?theme=dark)](https://flossafrica.com/m/thatpythonguy96?p=MeteoMap)
